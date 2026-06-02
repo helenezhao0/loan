@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保单借款计算器</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,Microsoft YaHei}
+        body{background:#f5f7fa;padding:20px;max-width:600px;margin:30px auto;}
+        .box{background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 12px #e2e8f0;}
+        h2{text-align:center;color:#2d3748;margin-bottom:25px;}
+        .item{margin-bottom:18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+        label{width:120px;color:#4a5568;font-weight:500;}
+        input,select{flex:1;min-width:180px;padding:11px 12px;border:1px solid #cbd5e0;border-radius:6px;font-size:15px;outline:none;background:#fff;}
+        .tip{padding:11px 10px;background:#edf2fb;border-radius:6px;color:#2b6cb0;min-width:85px;white-space:nowrap;}
+        button{width:100%;padding:13px;background:#2b6cb0;color:#fff;border:none;border-radius:6px;font-size:16px;margin:10px 0;cursor:pointer;}
+        button:active{background:#235999;}
+        .result{margin-top:15px;padding:15px;background:#f0f7ff;border-radius:8px;font-size:16px;}
+        .res-item{margin:6px 0;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>保单借款计算器</h2>
+
+    <!-- 1 借款金额 -->
+    <div class="item">
+        <label>借款金额(元)</label>
+        <input type="number" id="money" placeholder="输入借款金额">
+    </div>
+
+    <!-- 2 借款天数 -->
+    <div class="item">
+        <label>借款天数(天)</label>
+        <input type="number" id="day" placeholder="输入借款天数">
+    </div>
+
+    <!-- 3 险种类型 原生下拉 -->
+    <div class="item">
+        <label>险种类型</label>
+        <select id="typeSel">
+            <option value="">--请选择险种--</option>
+            <option value="分红型">分红型</option>
+            <option value="传统型">传统型</option>
+        </select>
+        <span class="tip" id="rateTip"></span>
+    </div>
+
+    <!-- 4 客户等级 原生下拉 -->
+    <div class="item">
+        <label>客户等级</label>
+        <select id="levelSel">
+            <option value="">--请选择客户等级--</option>
+            <option value="尊钻">尊钻</option>
+            <option value="黑钻">黑钻</option>
+            <option value="金钻">金钻</option>
+            <option value="星钻">星钻</option>
+            <option value="贵宾">贵宾</option>
+            <option value="普通客户">普通客户</option>
+        </select>
+        <span class="tip" id="discountTip"></span>
+    </div>
+
+    <button onclick="calc()">计算到期利息</button>
+
+    <div class="result" id="resultBox">
+        <div class="res-item">借款利率：<span id="showRate">--</span></div>
+        <div class="res-item">适用折扣：<span id="showDiscount">--</span></div>
+        <div class="res-item"><strong>到期利息(元)：<span id="showInterest">--</span></strong></div>
+    </div>
+</div>
+
+<script>
+// 配置参数
+const typeConfig = {
+    "分红型":{rate:0.05,show:"5%"},
+    "传统型":{rate:0.0475,show:"5%"}
+}
+const levelConfig = {
+    "尊钻":{discount:0.95,show:"九五折"},
+    "黑钻":{discount:0.96,show:"九六折"},
+    "金钻":{discount:0.98,show:"九八折"},
+    "星钻":{discount:1,show:"不打折"},
+    "贵宾":{discount:1,show:"不打折"},
+    "普通客户":{discount:1,show:"不打折"}
+}
+
+const typeSel = document.getElementById('typeSel');
+const levelSel = document.getElementById('levelSel');
+const rateTip = document.getElementById('rateTip');
+const discountTip = document.getElementById('discountTip');
+
+// 切换险种自动更新右侧提示
+typeSel.onchange = function(){
+    let val = this.value;
+    if(val){
+        rateTip.innerText = typeConfig[val].show;
+    }else{
+        rateTip.innerText = '';
+    }
+}
+
+// 切换等级自动更新右侧提示
+levelSel.onchange = function(){
+    let val = this.value;
+    if(val){
+        discountTip.innerText = levelConfig[val].show;
+    }else{
+        discountTip.innerText = '';
+    }
+}
+
+// 计算函数
+function calc(){
+    let money = Number(document.getElementById('money').value);
+    let day = Number(document.getElementById('day').value);
+    let selType = typeSel.value;
+    let selLevel = levelSel.value;
+
+    if(!money || !day || !selType || !selLevel){
+        alert("请完整填写：借款金额、借款天数、选择险种和客户等级！");
+        return;
+    }
+    let rate = typeConfig[selType].rate;
+    let discount = levelConfig[selLevel].discount;
+    // 已修改为新公式：本金*((1+利率*折扣)^(天数/365)-1)
+    let interest = money * (Math.pow(1 + rate * discount, day / 365) - 1);
+
+    // 赋值展示
+    document.getElementById('showRate').innerText = (rate*100)+"%";
+    document.getElementById('showDiscount').innerText = discount;
+    document.getElementById('showInterest').innerText = interest.toFixed(2);
+}
+</script>
+</body>
+</html>
